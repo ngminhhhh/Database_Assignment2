@@ -1,0 +1,15 @@
+| Method       | Endpoint          | Mô tả                                   |
+| ------------ | ----------------- | --------------------------------------- |
+| HEALTH CHECK |                   |                                         |
+| GET          | /                 | Kiểm tra server đang chạy               |
+| PRODUCTS     |                   |                                         |
+| GET          | /api/products     | Lấy danh sách sản phẩm (có filter/sort) |
+| GET          | /api/products/:id | Lấy chi tiết 1 sản phẩm                 |
+| POST         | /api/products     | Tạo sản phẩm mới                        |
+| PUT          | /api/products/:id | Cập nhật sản phẩm                       |
+| DELETE       | /api/products/:id | Xóa sản phẩm                            |
+| ORDERS       |                   |                                         |
+| GET          | /api/orders       | Lấy danh sách đơn hàng                  |
+| GET          | /api/orders/:id   | Lấy chi tiết 1 đơn hàng                 |
+| USERS        |                   |                                         |
+| GET          | /api/users        | Lấy danh sách người dùng                |
