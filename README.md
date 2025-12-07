@@ -1,284 +1,240 @@
-# Database Assignment 2 - Setup Guide
+# Database Assignment 2 - Docker Setup
 
-Hướng dẫn cài đặt và chạy dự án Database Assignment 2 với SQL Server, Backend (Node.js/Express), và Frontend (Vue.js).
+Dự án E-Commerce với SQL Server, Backend (Node.js/Express), và Frontend (Vue.js) được containerized bằng Docker.
 
 ## Yêu Cầu Hệ Thống
 
-- **Docker Desktop** - Để chạy SQL Server container
-- **Node.js** (phiên bản 14 trở lên) và **npm**
-- **VS Code** với extension **SQL Server (mssql)** đã cài đặt
+- **Docker Desktop** - Phải đang chạy
+- **Port yêu cầu**: 1433, 8080 (không bị sử dụng)
 
-## Bước 1: Khởi Động SQL Server Container
+## Cách Chạy Dự Án
 
-### 1.1. Khởi động Docker Desktop
-Mở Docker Desktop và đảm bảo Docker đang chạy.
-
-### 1.2. Chạy SQL Server Container
 ```bash
-docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=YourStrong@Passw0rd" -p 1433:1433 --name sql1 --hostname sql1 --platform linux/amd64 -d mcr.microsoft.com/mssql/server:2022-latest
+docker-compose up -d
 ```
 
-### 1.3. Kiểm tra Container đang chạy
+## Truy Cập Ứng Dụng
+
+- **Frontend (Giao diện web)**: http://localhost:8080
+- **API (qua Frontend proxy)**: http://localhost:8080/api
+- **SQL Server**: localhost:1433 (user: `sa`, password: `YourStrong@Passw0rd`)
+
+**Lưu ý**: Backend API **KHÔNG** public trực tiếp. Tất cả API requests phải đi qua Frontend (Nginx proxy) tại `http://localhost:8080/api/*`
+
+## Test Tài Khoản
+
+### Admin Account
+- Email: `smanager@example.com`
+- Password: `admin123`
+- Role: ADMIN
+
+### User Accounts (không cần password)
+- `alice.nguyen@example.com`
+- `bob.tran@example.com`
+- `carol.le@example.com`
+- `david.pham@example.com`
+- `eve.hoang@example.com`
+- `frank.vo@example.com`
+
+## Các Lệnh Hữu Ích
+
+### Xem logs
 ```bash
-docker ps
+# Tất cả services
+docker-compose logs
+
+# Chỉ backend
+docker-compose logs backend
+
+# Chỉ frontend
+docker-compose logs frontend
+
+# Chỉ database
+docker-compose logs sqlserver
+
+# Theo dõi realtime
+docker-compose logs -f
 ```
 
-Bạn sẽ thấy container `sql1` đang chạy với status `Up`.
-
-## Bước 2: Kết Nối và Thiết Lập Database
-
-### 2.1. Kết nối với SQL Server trong VS Code
-
-1. Mở VS Code và click vào biểu tượng **SQL Server** ở thanh bên trái
-2. Click vào dấu **+** để thêm kết nối mới
-3. Nhập thông tin kết nối:
-   - **Server name:** `localhost`
-   - **Database name:** `master` (hoặc để trống)
-   - **Authentication Type:** `SQL Login`
-   - **User name:** `sa`
-   - **Password:** `YourStrong@Passw0rd`
-   - **Profile Name:** `sql1`
-   - **Save Password:** Yes
-
-### 2.2. Chạy các Script SQL theo thứ tự
-
-Sau khi kết nối thành công, chạy các file SQL trong thư mục `sql-server-assignment` theo đúng thứ tự sau:
-
-#### Bước 1: Tạo Tables
+### Dừng ứng dụng
 ```bash
-# Mở file create_table.sql
-# Right-click trong editor → Execute Query
-# Hoặc nhấn Cmd+Shift+E (Mac) / Ctrl+Shift+E (Windows)
+docker-compose down
 ```
-File: `sql-server-assignment/create_table.sql`
 
-#### Bước 2: Tạo Functions và Procedures
+### Dừng và xóa dữ liệu database
 ```bash
-# Mở file function_procedure.sql
-# Execute Query
+docker-compose down -v
 ```
-File: `sql-server-assignment/function_procedure.sql`
 
-#### Bước 3: Tạo Triggers
+### Khởi động lại một service
 ```bash
-# Mở file trigger.sql
-# Execute Query
+docker-compose restart backend
+docker-compose restart frontend
 ```
-File: `sql-server-assignment/trigger.sql`
 
-#### Bước 4: Insert Data
+### Rebuild sau khi thay đổi code
 ```bash
-# Mở file insert_data.sql
-# Execute Query
+docker-compose up -d --build
 ```
-File: `sql-server-assignment/insert_data.sql`
 
-**Lưu ý:** Phải chạy đúng thứ tự các file trên để đảm bảo database được khởi tạo đúng cách.
-
-## Bước 3: Thiết Lập Backend
-
-### 3.1. Di chuyển vào thư mục backend
+### Kiểm tra trạng thái containers
 ```bash
-cd backend
+docker-compose ps
 ```
 
-### 3.2. Cài đặt dependencies
+## Test API
+
+Tất cả API requests phải qua Frontend proxy:
+
+### Get Products
 ```bash
-npm install
+curl http://localhost:8080/api/products
 ```
 
-Các package sẽ được cài đặt:
-- `express` - Web framework
-- `mssql` - SQL Server driver
-- `cors` - Cross-Origin Resource Sharing
-- `dotenv` - Environment variables
-- `body-parser` - Parse request bodies
-- `nodemon` (dev) - Auto-restart server
-
-### 3.3. Kiểm tra file .env
-
-Đảm bảo file `backend/.env` có nội dung:
-```env
-# Database Configuration
-DB_SERVER=localhost
-DB_USER=sa
-DB_PASSWORD=YourStrong@Passw0rd
-DB_NAME=master
-
-# Server Configuration
-PORT=3000
-```
-
-**Lưu ý:** Nếu bạn đã tạo database riêng trong `create_table.sql`, hãy thay đổi `DB_NAME` cho phù hợp.
-
-### 3.4. Chạy Backend Server
-
-**Development mode (với auto-reload):**
+### Get Users
 ```bash
-npm run dev
+curl http://localhost:8080/api/users
 ```
 
-**Production mode:**
+### Get Orders
 ```bash
-npm start
+curl http://localhost:8080/api/orders
 ```
 
-Backend sẽ chạy tại: `http://localhost:3000`
-
-## Bước 4: Thiết Lập Frontend
-
-### 4.1. Mở terminal mới và di chuyển vào thư mục frontend
-```bash
-cd frontend-app
+### Login Admin
+```powershell
+$body = @{email='smanager@example.com';password='admin123'} | ConvertTo-Json
+curl -X POST http://localhost:8080/api/auth/login -H "Content-Type: application/json" -d $body
 ```
 
-### 4.2. Cài đặt dependencies
-```bash
-npm install
+### Login User
+```powershell
+$body = @{email='alice.nguyen@example.com';password=''} | ConvertTo-Json
+curl -X POST http://localhost:8080/api/auth/login -H "Content-Type: application/json" -d $body
 ```
 
-Các package sẽ được cài đặt:
-- `vue` - Vue.js framework
-- `vue-router` - Vue routing
-- `axios` - HTTP client
-- `bootstrap` - CSS framework
-- `bootstrap-icons` - Icon library
-- `vite` (dev) - Build tool
-
-### 4.3. Chạy Frontend Development Server
-```bash
-npm run dev
+### Create Product
+```powershell
+$body = @{seller_id='SEL0001';name='New Product';description='Test product';price=500000;stock_quantity=10} | ConvertTo-Json
+curl -X POST http://localhost:8080/api/products -H "Content-Type: application/json" -d $body
 ```
 
-Frontend sẽ chạy tại: `http://localhost:5173` (hoặc port khác nếu 5173 đã được sử dụng)
+## Kiến Trúc Hệ Thống
 
-Vite sẽ tự động mở trình duyệt.
-
-## Bước 5: Kiểm Tra Ứng Dụng
-
-1. **Backend:** Truy cập `http://localhost:3000` - Server đang chạy
-2. **Frontend:** Truy cập `http://localhost:5173` - Giao diện web
-3. **Database:** Sử dụng SQL Server extension trong VS Code để query database
-
-## Tóm Tắt Các Lệnh Chạy
-
-### Chạy tất cả trong các terminal riêng biệt:
-
-**Terminal 1 - SQL Server (Docker):**
-```bash
-docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=YourStrong@Passw0rd" -p 1433:1433 --name sql1 --hostname sql1 --platform linux/amd64 -d mcr.microsoft.com/mssql/server:2022-latest
 ```
-
-**Terminal 2 - Backend:**
-```bash
-cd backend
-npm install
-npm run dev
+┌─────────────────────────────────────────────────┐
+│  Browser (http://localhost:8080)                │
+└────────────────┬────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────┐
+│  Frontend Container (Nginx)                     │
+│  - Serve Vue.js static files                    │
+│  - Proxy /api/* → backend:3000                  │
+└────────────────┬────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────┐
+│  Backend Container (Node.js/Express)            │
+│  - Port: 3000 (internal only)                   │
+│  - API endpoints: /api/*                        │
+└────────────────┬────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────┐
+│  SQL Server Container                           │
+│  - Port: 1433 (exposed)                         │
+│  - Database: MyDatabase                         │
+└─────────────────────────────────────────────────┘
 ```
-
-**Terminal 3 - Frontend:**
-```bash
-cd frontend-app
-npm install
-npm run dev
-```
-
-## Xử Lý Sự Cố
-
-### Docker container đã tồn tại
-Nếu gặp lỗi container name already in use:
-```bash
-docker rm sql1
-# Sau đó chạy lại lệnh docker run
-```
-
-### Docker container bị dừng
-Để khởi động lại container:
-```bash
-docker start sql1
-```
-
-### Không kết nối được database
-1. Kiểm tra Docker container đang chạy: `docker ps`
-2. Kiểm tra logs: `docker logs sql1`
-3. Kiểm tra thông tin trong file `.env`
-4. Đảm bảo port 1433 không bị chặn
-
-### Backend không khởi động
-1. Kiểm tra file `.env` có đúng thông tin
-2. Đảm bảo database đã được setup (chạy các file SQL)
-3. Kiểm tra port 3000 chưa được sử dụng bởi ứng dụng khác
-
-### Frontend không khởi động
-1. Kiểm tra `node_modules` đã được cài đặt
-2. Xóa `node_modules` và chạy `npm install` lại
-3. Kiểm tra port 5173 chưa được sử dụng
-
-## Dừng Ứng Dụng
-
-- **Frontend/Backend:** Nhấn `Ctrl+C` trong terminal
-- **Docker Container:** 
-  ```bash
-  docker stop sql1
-  ```
-
-## Xóa Container (Nếu Cần)
-```bash
-docker stop sql1
-docker rm sql1
-```
-
----
 
 ## Cấu Trúc Thư Mục
 
 ```
 Database_Assignment2/
-├── backend/                # Node.js/Express backend
+├── docker-compose.yml          # Cấu hình Docker services
+├── backend/
+│   ├── Dockerfile
+│   ├── server.js
 │   ├── config/
-│   │   └── db.js          # Database configuration
-│   ├── routes/            # API routes
-│   │   ├── orders.js
-│   │   ├── products.js
-│   │   └── users.js
-│   ├── .env               # Environment variables
-│   ├── package.json
-│   └── server.js          # Entry point
-│
-├── frontend-app/          # Vue.js frontend
-│   ├── src/
-│   │   ├── components/    # Vue components
-│   │   ├── views/         # Page views
-│   │   ├── router/        # Vue router
-│   │   ├── services/      # API services
-│   │   └── App.vue
-│   ├── package.json
-│   └── vite.config.js
-│
-├── sql-server-assignment/ # SQL Scripts
-│   ├── create_table.sql       # Bước 1
-│   ├── function_procedure.sql # Bước 2
-│   ├── trigger.sql            # Bước 3
-│   ├── insert_data.sql        # Bước 4
-│   ├── test.sql
-│   └── reset.sql
-│
-└── README.md             # File này
+│   │   └── db.js              # SQL Server connection
+│   └── routes/
+│       ├── auth.js            # Login API
+│       ├── products.js        # Products CRUD
+│       ├── orders.js          # Orders API
+│       └── users.js           # Users API
+├── frontend-app/
+│   ├── Dockerfile
+│   ├── nginx.conf             # Nginx proxy config
+│   └── src/
+│       ├── views/
+│       ├── components/
+│       └── services/
+│           └── api.js         # API client
+└── sql-server-assignment/
+    ├── create_table.sql       # Database schema
+    ├── function_procedure.sql # Functions & Procedures
+    ├── trigger.sql            # Triggers
+    └── insert_data.sql        # Sample data
 ```
 
-## Thông Tin Kết Nối Mặc Định
+## Xử Lý Sự Cố
 
-- **SQL Server:**
-  - Host: `localhost`
-  - Port: `1433`
-  - User: `sa`
-  - Password: `YourStrong@Passw0rd`
+### Port đã được sử dụng
+Kiểm tra và thay đổi port trong `docker-compose.yml`:
+```yaml
+ports:
+  - "8081:80"  # Thay 8080 thành 8081
+```
 
-- **Backend API:**
-  - URL: `http://localhost:3000`
+### Database chưa được khởi tạo
+Xem logs của db-init container:
+```bash
+docker-compose logs db-init
+```
 
-- **Frontend:**
-  - URL: `http://localhost:5173`
+Nếu cần chạy lại:
+```bash
+docker-compose down -v
+docker-compose up -d
+```
+
+### Frontend không gọi được API
+Kiểm tra logs:
+```bash
+docker-compose logs frontend
+docker-compose logs backend
+```
+
+### Rebuild toàn bộ từ đầu
+```bash
+docker-compose down -v
+docker-compose build --no-cache
+docker-compose up -d
+```
+
+## Tính Năng Bảo Mật
+
+- ✅ Backend **KHÔNG** public ra ngoài
+- ✅ Tất cả API requests phải qua Nginx proxy
+- ✅ CORS được cấu hình đúng
+- ✅ SQL injection protection với parameterized queries
+- ✅ Database credentials trong Docker environment variables
+
+## Environment Variables
+
+### Backend
+- `DB_SERVER`: sqlserver
+- `DB_USER`: sa
+- `DB_PASSWORD`: YourStrong@Passw0rd
+- `DB_NAME`: MyDatabase
+- `PORT`: 3000
+
+### Frontend
+- `VITE_API_BASE_URL`: /api (relative path qua proxy)
 
 ---
+
+**Phát triển bởi**: Database Assignment 2 Team
+**Ngày**: December 2025
 

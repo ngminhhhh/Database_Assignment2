@@ -115,7 +115,8 @@ CREATE TABLE Product_Category(
 
     PRIMARY KEY(product_id, category_id),
     CONSTRAINT fk_pc_product
-        FOREIGN KEY(product_id) REFERENCES Product(product_id),
+        FOREIGN KEY(product_id) REFERENCES Product(product_id)
+        ON DELETE CASCADE,
     CONSTRAINT fk_pc_category
         FOREIGN KEY(category_id) REFERENCES Category(category_id)
 );
@@ -191,7 +192,8 @@ CREATE TABLE OrderDetail(
         FOREIGN KEY (order_id) REFERENCES [Order](order_id)
         ON DELETE CASCADE,
     CONSTRAINT fk_orderdetail_product
-        FOREIGN KEY(product_id) REFERENCES Product(product_id),
+        FOREIGN KEY(product_id) REFERENCES Product(product_id)
+        ON DELETE CASCADE,
     CONSTRAINT chk_orderdetail_price
         CHECK (unit_price >= 0),
     CONSTRAINT chk_orderdetail_quantity
@@ -204,7 +206,6 @@ CREATE TABLE Product_OrderDetail (
     orderdetail_id  INT     NOT NULL,
     order_id        INT     NOT NULL,
     product_id      INT     NOT NULL,
-    PRIMARY KEY (orderdetail_id, order_id, product_id),
     CONSTRAINT fk_po_orderdetail
         FOREIGN KEY (orderdetail_id)    REFERENCES OrderDetail(orderdetail_id)
         ON DELETE CASCADE,
@@ -212,6 +213,7 @@ CREATE TABLE Product_OrderDetail (
         FOREIGN KEY (order_id)    REFERENCES [Order](order_id),
     CONSTRAINT fk_po_productid
         FOREIGN KEY (product_id)    REFERENCES Product(product_id)
+        ON DELETE CASCADE
 );
 GO
 
@@ -299,11 +301,11 @@ CREATE TABLE Review (
     review_date  DATETIME NOT NULL DEFAULT GETDATE(),
 
     PRIMARY KEY (review_id, customer_id),
-
     CONSTRAINT fk_review_customer
         FOREIGN KEY (customer_id) REFERENCES Customer(customer_id),
     CONSTRAINT fk_review_product
-        FOREIGN KEY (product_id) REFERENCES Product(product_id),
+        FOREIGN KEY (product_id) REFERENCES Product(product_id)
+        ON DELETE CASCADE,
     CONSTRAINT chk_review_rating
         CHECK (rating BETWEEN 1 AND 5)
 );
