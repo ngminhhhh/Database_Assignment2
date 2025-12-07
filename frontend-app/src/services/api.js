@@ -23,6 +23,9 @@ export default {
   deleteProduct(id) {
     return apiClient.delete(`/products/${id}`);
   },
+  updateProduct(id, data) {
+    return apiClient.put(`/products/${id}`, data);
+  },
   // BE chưa có route login =)))
   getUsers() {
     return apiClient.get('/users');

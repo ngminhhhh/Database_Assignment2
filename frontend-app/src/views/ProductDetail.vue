@@ -3,7 +3,7 @@
     <div class="row">
       <div class="col-md-6 mb-4 mb-md-0">
         <div class="card border-0 shadow-sm p-2">
-           <img src="https://via.placeholder.com/600x400?text=Product+Detail" class="img-fluid rounded" alt="">
+           <img src="../assets/images/noimage.svg" class="img-fluid rounded" alt="">
         </div>
       </div>
       
