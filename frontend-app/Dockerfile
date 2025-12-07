@@ -13,9 +13,7 @@ RUN npm ci
 # Copy application code
 COPY . .
 
-# Set API URL for production (browser will call this URL)
-# Since browser runs on host machine, use localhost:3000
-ARG VITE_API_BASE_URL=http://localhost:3000/api
+ARG VITE_API_BASE_URL=/api
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
 # Build the application

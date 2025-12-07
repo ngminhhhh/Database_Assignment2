@@ -22,7 +22,6 @@ services:
       retries: 10
       start_period: 30s
 
-  # Database Initializer - runs SQL scripts after SQL Server is ready
   db-init:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: database_assignment_db_init
@@ -66,7 +65,6 @@ services:
       - DB_NAME=MyDatabase
       - PORT=3000
       - NODE_ENV=production
-    # Chỉ expose trong Docker network, không public ra host
     expose:
       - "3000"
     depends_on:
