@@ -1,8 +1,9 @@
 import axios from 'axios';
 
-// Kết nối với Backend Node.js của bạn
+// In Docker: API is proxied through nginx at /api (same origin)
+// In local development: use localhost:3000/api
 const apiClient = axios.create({
-  baseURL: 'http://localhost:3000/api', 
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -22,7 +23,7 @@ export default {
   deleteProduct(id) {
     return apiClient.delete(`/products/${id}`);
   },
-  // Users API  (Tạm dùng để giả lập login vì backend chưa có route /login)
+  // BE chưa có route login =)))
   getUsers() {
     return apiClient.get('/users');
   }

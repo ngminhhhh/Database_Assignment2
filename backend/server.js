@@ -1,6 +1,9 @@
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config();
+
+// Load .env if exists (for local development)
+// In Docker, environment variables are set via docker-compose.yml
+require('dotenv').config({ silent: true });
 
 const app = express();
 const PORT = process.env.PORT || 5000;

@@ -1,15 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const { sql } = require('../config/db');
+const { sql, getPool } = require('../config/db');
 
 // GET all users
 router.get('/', async (req, res) => {
   try {
-    const result = await sql.query`
+    const pool = getPool();
+    const result = await pool.request().query(`
       SELECT email, fname, mname, lname, phone, registration_date
       FROM [User]
       ORDER BY registration_date DESC
-    `;
+    `);
     
     res.json({
       success: true,

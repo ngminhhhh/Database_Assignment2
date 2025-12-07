@@ -1,5 +1,6 @@
 const sql = require('mssql');
-require('dotenv').config();
+
+require('dotenv').config({ silent: true });
 
 const config = {
   user: process.env.DB_USER,

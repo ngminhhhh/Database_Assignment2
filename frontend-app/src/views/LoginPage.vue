@@ -34,7 +34,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import axios from 'axios'; // Đảm bảo đã import axios
+import axios from 'axios';
 
 const email = ref('');
 const password = ref('');
@@ -43,14 +43,16 @@ const error = ref('');
 const handleLogin = async () => {
   try {
     error.value = '';
-    // Gọi API Backend vừa tạo
-    const res = await axios.post('http://localhost:5000/api/auth/login', {
+    const apiClient = axios.create({
+      baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+    });
+    
+    const res = await apiClient.post('/auth/login', {
       email: email.value,
       password: password.value
     });
 
     if (res.data.success) {
-      // Lưu thông tin user và chuyển trang
       localStorage.setItem('user', JSON.stringify(res.data.user));
       window.location.href = '/'; 
     }

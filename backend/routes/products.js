@@ -1,14 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const { sql } = require('../config/db');
+const { sql, getPool } = require('../config/db');
 
 // GET all products với filter & sort
 router.get('/', async (req, res) => {
   try {
     const { category, minPrice, maxPrice, sortBy = 'upload_date', order = 'DESC' } = req.query;
     
-    // ĐÃ SỬA: Sử dụng parameterized query
-    const request = new sql.Request();
+    const pool = getPool();
+    const request = pool.request();
     
     let query = `
       SELECT 
@@ -74,15 +74,18 @@ router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     
-    const result = await sql.query`
-      SELECT 
-        p.*,
-        s.store_name,
-        s.email as seller_email
-      FROM Product p
-      JOIN Seller s ON p.seller_id = s.seller_id
-      WHERE p.product_id = ${id}
-    `;
+    const pool = getPool();
+    const result = await pool.request()
+      .input('id', sql.Int, parseInt(id))
+      .query(`
+        SELECT 
+          p.*,
+          s.store_name,
+          s.email as seller_email
+        FROM Product p
+        JOIN Seller s ON p.seller_id = s.seller_id
+        WHERE p.product_id = @id
+      `);
     
     if (result.recordset.length === 0) {
       return res.status(404).json({
@@ -115,11 +118,18 @@ router.post('/', async (req, res) => {
       });
     }
     
-    const result = await sql.query`
-      INSERT INTO Product (seller_id, name, description, price, stock_quantity)
-      VALUES (${seller_id}, ${name}, ${description || null}, ${price}, ${stock_quantity || 0});
-      SELECT SCOPE_IDENTITY() AS product_id;
-    `;
+    const pool = getPool();
+    const result = await pool.request()
+      .input('seller_id', sql.VarChar, seller_id)
+      .input('name', sql.NVarChar, name)
+      .input('description', sql.NVarChar, description || null)
+      .input('price', sql.Decimal(10, 2), price)
+      .input('stock_quantity', sql.Int, stock_quantity || 0)
+      .query(`
+        INSERT INTO Product (seller_id, name, description, price, stock_quantity)
+        VALUES (@seller_id, @name, @description, @price, @stock_quantity);
+        SELECT SCOPE_IDENTITY() AS product_id;
+      `);
     
     res.status(201).json({
       success: true,
@@ -144,15 +154,22 @@ router.put('/:id', async (req, res) => {
     const { id } = req.params;
     const { name, description, price, stock_quantity } = req.body;
     
-    const result = await sql.query`
-      UPDATE Product
-      SET 
-        name = COALESCE(${name}, name),
-        description = COALESCE(${description}, description),
-        price = COALESCE(${price}, price),
-        stock_quantity = COALESCE(${stock_quantity}, stock_quantity)
-      WHERE product_id = ${id}
-    `;
+    const pool = getPool();
+    const result = await pool.request()
+      .input('id', sql.Int, parseInt(id))
+      .input('name', sql.NVarChar, name)
+      .input('description', sql.NVarChar, description)
+      .input('price', sql.Decimal(10, 2), price)
+      .input('stock_quantity', sql.Int, stock_quantity)
+      .query(`
+        UPDATE Product
+        SET 
+          name = COALESCE(@name, name),
+          description = COALESCE(@description, description),
+          price = COALESCE(@price, price),
+          stock_quantity = COALESCE(@stock_quantity, stock_quantity)
+        WHERE product_id = @id
+      `);
     
     if (result.rowsAffected[0] === 0) {
       return res.status(404).json({
@@ -178,9 +195,10 @@ router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     
-    const result = await sql.query`
-      DELETE FROM Product WHERE product_id = ${id}
-    `;
+    const pool = getPool();
+    const result = await pool.request()
+      .input('id', sql.Int, parseInt(id))
+      .query('DELETE FROM Product WHERE product_id = @id');
     
     if (result.rowsAffected[0] === 0) {
       return res.status(404).json({

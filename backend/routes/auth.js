@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { sql } = require('../config/db');
+const { sql, getPool } = require('../config/db');
 
 // API Đăng nhập
 router.post('/login', async (req, res) => {
@@ -27,7 +27,10 @@ router.post('/login', async (req, res) => {
 
     // --- TRƯỜNG HỢP USER THƯỜNG ---
     // Kiểm tra email trong database
-    const result = await sql.query`SELECT * FROM [User] WHERE email = ${email}`;
+    const pool = getPool();
+    const result = await pool.request()
+      .input('email', sql.NVarChar, email)
+      .query('SELECT * FROM [User] WHERE email = @email');
     
     if (result.recordset.length === 0) {
       return res.status(404).json({ success: false, message: 'Email không tồn tại trong hệ thống.' });
