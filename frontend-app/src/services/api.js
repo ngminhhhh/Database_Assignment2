@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Kết nối với Backend Node.js của bạn
 const apiClient = axios.create({
-  baseURL: 'http://localhost:5000/api', // Port 5000 như trong server.js
+  baseURL: 'http://localhost:3000/api', 
   headers: {
     'Content-Type': 'application/json',
   },
