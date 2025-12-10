@@ -26,6 +26,21 @@ export default {
   updateProduct(id, data) {
     return apiClient.put(`/products/${id}`, data);
   },
+  // Order API
+  getMonthlyStats(params) {
+    // params bao gồm: { seller_id, month, year }
+    return apiClient.get('/orders/stats/monthly', { params });
+  },
+  // Hàm lấy danh sách đơn hàng của Seller (nếu chưa có)
+  getSellerOrders(sellerId) {
+    return apiClient.get(`/orders/seller/${sellerId}`);
+  },
+  getVouchers() {
+    return apiClient.get('/vouchers');
+  },
+  createOrder(data) {
+    return apiClient.post('/orders/create', data);
+  },
   // BE chưa có route login =)))
   getUsers() {
     return apiClient.get('/users');
